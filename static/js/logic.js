@@ -1,3 +1,8 @@
+
+
+
+
+
 // // Function to create a map with demolition permits data
 // function createMap(demolitionLayer, heatLayer, markerCluster, legends) {
 //   // Create the tile layer that will be the background of our map.
@@ -48,14 +53,14 @@
 //     div.style.maxHeight = '200px'; // Adjust as needed
 //     div.style.overflowY = 'auto'; // Enable vertical scrolling if content exceeds the height
 
-//     div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Permit Types</strong></div>`;
+//     div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Contractor Names</strong></div>`;
     
 //     // Sort legends by count
 //     const sortedLegends = Object.entries(legends).sort((a, b) => b[1].count - a[1].count);
     
 //     // Append legend items dynamically
-//     sortedLegends.forEach(([permitType, { color, count }]) => {
-//       div.innerHTML += `<div><span style="color:${color}">&bull;</span> ${permitType} (${count})</div>`;
+//     sortedLegends.forEach(([contractor, { color, count }]) => {
+//       div.innerHTML += `<div><span style="color:${color}">&bull;</span> ${contractor} (${count})</div>`;
 //     });
 
 //     return div;
@@ -78,6 +83,7 @@
 //   response.forEach(demolition => {
 //     let latitude = parseFloat(demolition.latitude);
 //     let longitude = parseFloat(demolition.longitude);
+//     let contractorName = demolition.contact_1_name;
 
 //     // Check if latitude and longitude are valid numbers.
 //     if (!isNaN(latitude) && !isNaN(longitude)) {
@@ -86,7 +92,7 @@
 //         .bindPopup(`
 //           <h3>Location: ${demolition.street_number} ${demolition.street_direction} ${demolition.street_name}</h3>
 //           <p>Permit Type: ${demolition.permit_type}</p>
-//           <p>Contractor: ${demolition.contact_1_name}</p>
+//           <p>Contractor: ${contractorName}</p>
 //         `);
 
 //       // Add the marker to the demolitionMarkers array.
@@ -98,15 +104,15 @@
 //       // Add the marker to the markerCluster.
 //       markerCluster.addLayer(demolitionMarker);
 
-//       // Update legend data (optional).
-//       if (!legends[demolition.permit_type]) {
+//       // Update legend data by contact_1_name (contractor)
+//       if (!legends[contractorName]) {
 //         let color = '#000000'; // Assign a color (optional)
-//         legends[demolition.permit_type] = {
+//         legends[contractorName] = {
 //           color: color,
 //           count: 1
 //         };
 //       } else {
-//         legends[demolition.permit_type].count++;
+//         legends[contractorName].count++;
 //       }
 //     }
 //   });
@@ -124,8 +130,6 @@
 // // Perform an API call to get the demolition permit information and create markers.
 // d3.json("https://data.cityofchicago.org/resource/e4xk-pud8.json")
 //   .then(createMarkers);
-
-
 
 
 
@@ -194,14 +198,14 @@ function createLegendControl(legends) {
     div.style.maxHeight = '200px'; // Adjust as needed
     div.style.overflowY = 'auto'; // Enable vertical scrolling if content exceeds the height
 
-    div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Different Cities</strong></div>`;
+    div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Contractor Names</strong></div>`;
     
-    // Sort legends by count
-    const sortedLegends = Object.entries(legends).sort((a, b) => b[1].count - a[1].count);
+    // Sort legends alphabetically by contractor name
+    const sortedLegends = Object.entries(legends).sort((a, b) => a[0].localeCompare(b[0]));
     
     // Append legend items dynamically
-    sortedLegends.forEach(([city, { color, count }]) => {
-      div.innerHTML += `<div><span style="color:${color}">&bull;</span> ${city} (${count})</div>`;
+    sortedLegends.forEach(([contractor, { color, count }]) => {
+      div.innerHTML += `<div><span style="color:${color}">&bull;</span> ${contractor} (${count})</div>`;
     });
 
     return div;
@@ -224,7 +228,7 @@ function createMarkers(response) {
   response.forEach(demolition => {
     let latitude = parseFloat(demolition.latitude);
     let longitude = parseFloat(demolition.longitude);
-    let city = demolition.contact_1_city;
+    let contractorName = demolition.contact_1_name;
 
     // Check if latitude and longitude are valid numbers.
     if (!isNaN(latitude) && !isNaN(longitude)) {
@@ -233,7 +237,7 @@ function createMarkers(response) {
         .bindPopup(`
           <h3>Location: ${demolition.street_number} ${demolition.street_direction} ${demolition.street_name}</h3>
           <p>Permit Type: ${demolition.permit_type}</p>
-          <p>Contractor: ${demolition.contact_1_name}</p>
+          <p>Contractor: ${contractorName}</p>
         `);
 
       // Add the marker to the demolitionMarkers array.
@@ -245,15 +249,15 @@ function createMarkers(response) {
       // Add the marker to the markerCluster.
       markerCluster.addLayer(demolitionMarker);
 
-      // Update legend data by contact_1_city
-      if (!legends[city]) {
+      // Update legend data by contact_1_name (contractor)
+      if (!legends[contractorName]) {
         let color = '#000000'; // Assign a color (optional)
-        legends[city] = {
+        legends[contractorName] = {
           color: color,
           count: 1
         };
       } else {
-        legends[city].count++;
+        legends[contractorName].count++;
       }
     }
   });
@@ -262,7 +266,7 @@ function createMarkers(response) {
   let demolitionLayer = L.layerGroup(demolitionMarkers);
 
   // Create a heatmap layer from heatArray (optional).
-  let heatLayer = L.heatLayer(heatArray, { radius: 80, blur: 50 });
+  let heatLayer = L.heatLayer(heatArray, { radius: 50, blur: 50 });
 
   // Create a map with demolitionLayer, heatLayer, and markerCluster.
   createMap(demolitionLayer, heatLayer, markerCluster, legends);
