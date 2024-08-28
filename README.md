@@ -29,3 +29,9 @@
     The following link corresponds to the JSON file I used to extract the data. 
 
   - https://data.cityofchicago.org/resource/e4xk-pud8.json
+
+## Limitations 
+
+  - The JSON file only displays the last 1,000 permits.
+
+  - The data provided didn't show the day when the permit was issued. 
