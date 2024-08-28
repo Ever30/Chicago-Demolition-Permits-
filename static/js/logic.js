@@ -1,8 +1,6 @@
 
 
 
-
-
 // // Function to create a map with demolition permits data
 // function createMap(demolitionLayer, heatLayer, markerCluster, legends) {
 //   // Create the tile layer that will be the background of our map.
@@ -55,8 +53,8 @@
 
 //     div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Contractor Names</strong></div>`;
     
-//     // Sort legends by count
-//     const sortedLegends = Object.entries(legends).sort((a, b) => b[1].count - a[1].count);
+//     // Sort legends alphabetically by contractor name
+//     const sortedLegends = Object.entries(legends).sort((a, b) => a[0].localeCompare(b[0]));
     
 //     // Append legend items dynamically
 //     sortedLegends.forEach(([contractor, { color, count }]) => {
@@ -68,6 +66,43 @@
 
 //   return legend;
 // }
+
+
+
+
+
+// // Function to create a legend control
+// function createLegendControl(legends) {
+//   let legend = L.control({
+//     position: 'bottomright'
+//   });
+
+//   legend.onAdd = function(map) {
+//     let div = L.DomUtil.create('div', 'info legend');
+//     div.style.backgroundColor = 'rgba(255, 255, 255, .7)';
+//     div.style.padding = '10px';
+//     div.style.borderRadius = '5px';
+//     div.style.maxHeight = '200px'; // Adjust as needed
+//     div.style.overflowY = 'auto'; // Enable vertical scrolling if content exceeds the height
+
+//     div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Contractor Names</strong></div>`;
+    
+//     // Sort legends alphabetically by contractor name
+//     const sortedLegends = Object.entries(legends).sort((a, b) => a[0].localeCompare(b[0]));
+    
+//     // Append legend items dynamically
+//     sortedLegends.forEach(([contractor, { color, count }]) => {
+//       div.innerHTML += `<div><span style="color:${color}">&bull;</span> ${contractor} (${count})</div>`;
+//     });
+
+//     return div;
+//   };
+
+//   return legend;
+// }
+
+
+
 
 // // Function to create markers for demolition permits
 // function createMarkers(response) {
@@ -84,6 +119,7 @@
 //     let latitude = parseFloat(demolition.latitude);
 //     let longitude = parseFloat(demolition.longitude);
 //     let contractorName = demolition.contact_1_name;
+//     let contractorName2 = demolition.contact_2_name;
 
 //     // Check if latitude and longitude are valid numbers.
 //     if (!isNaN(latitude) && !isNaN(longitude)) {
@@ -92,7 +128,8 @@
 //         .bindPopup(`
 //           <h3>Location: ${demolition.street_number} ${demolition.street_direction} ${demolition.street_name}</h3>
 //           <p>Permit Type: ${demolition.permit_type}</p>
-//           <p>Contractor: ${contractorName}</p>
+//           <p>Contractor 1: ${contractorName}</p>
+//           <p>Contractor 2: ${contractorName2}</p>
 //         `);
 
 //       // Add the marker to the demolitionMarkers array.
@@ -121,7 +158,7 @@
 //   let demolitionLayer = L.layerGroup(demolitionMarkers);
 
 //   // Create a heatmap layer from heatArray (optional).
-//   let heatLayer = L.heatLayer(heatArray, { radius: 80, blur: 50 });
+//   let heatLayer = L.heatLayer(heatArray, { radius: 50, blur: 50 });
 
 //   // Create a map with demolitionLayer, heatLayer, and markerCluster.
 //   createMap(demolitionLayer, heatLayer, markerCluster, legends);
@@ -149,7 +186,7 @@
 
 
 // Function to create a map with demolition permits data
-function createMap(demolitionLayer, heatLayer, markerCluster, legends) {
+function createMap(demolitionLayer, heatLayer, markerCluster, legends, contact2Counts) {
   // Create the tile layer that will be the background of our map.
   let streetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -179,15 +216,19 @@ function createMap(demolitionLayer, heatLayer, markerCluster, legends) {
     collapsed: false
   }).addTo(map);
 
-  // Create a legend control
+  // Add legend control to the map
   let legend = createLegendControl(legends);
   legend.addTo(map);
+
+  // Add contact2Counts control to the bottom left
+  let contact2Control = createContact2Control(contact2Counts);
+  contact2Control.addTo(map);
 }
 
 // Function to create a legend control
 function createLegendControl(legends) {
   let legend = L.control({
-    position: 'bottomright'
+    position: 'bottomleft'
   });
 
   legend.onAdd = function(map) {
@@ -198,7 +239,7 @@ function createLegendControl(legends) {
     div.style.maxHeight = '200px'; // Adjust as needed
     div.style.overflowY = 'auto'; // Enable vertical scrolling if content exceeds the height
 
-    div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Contractor Names</strong></div>`;
+    div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong> First Contractor</strong></div>`;
     
     // Sort legends alphabetically by contractor name
     const sortedLegends = Object.entries(legends).sort((a, b) => a[0].localeCompare(b[0]));
@@ -214,12 +255,43 @@ function createLegendControl(legends) {
   return legend;
 }
 
+// Function to create contact2 control
+function createContact2Control(contact2Counts) {
+  let contact2Control = L.control({
+    position: 'bottomright'
+  });
+
+  contact2Control.onAdd = function(map) {
+    let div = L.DomUtil.create('div', 'info contact2');
+    div.style.backgroundColor = 'rgba(255, 255, 255, .7)';
+    div.style.padding = '10px';
+    div.style.borderRadius = '5px';
+    div.style.maxHeight = '200px'; // Adjust as needed
+    div.style.overflowY = 'auto'; // Enable vertical scrolling if content exceeds the height
+
+    div.innerHTML = `<div style="font-size: 14px; margin-bottom: 5px;"><strong>Second Contractor</strong></div>`;
+    
+    // Sort contact2Counts alphabetically by name
+    const sortedContact2Counts = Object.entries(contact2Counts).sort((a, b) => a[0].localeCompare(b[0]));
+    
+    // Append contact2 items dynamically
+    sortedContact2Counts.forEach(([contact2Name, count]) => {
+      div.innerHTML += `<div>${contact2Name} (${count})</div>`;
+    });
+
+    return div;
+  };
+
+  return contact2Control;
+}
+
 // Function to create markers for demolition permits
 function createMarkers(response) {
   // Initialize arrays to hold demolition markers and coordinates for the heatmap.
   let demolitionMarkers = [];
   let heatArray = [];
   let legends = {};
+  let contact2Counts = {};
 
   // Initialize a MarkerClusterGroup to hold demolition markers.
   let markerCluster = L.markerClusterGroup();
@@ -229,6 +301,7 @@ function createMarkers(response) {
     let latitude = parseFloat(demolition.latitude);
     let longitude = parseFloat(demolition.longitude);
     let contractorName = demolition.contact_1_name;
+    let contractorName2 = demolition.contact_2_name;
 
     // Check if latitude and longitude are valid numbers.
     if (!isNaN(latitude) && !isNaN(longitude)) {
@@ -237,7 +310,8 @@ function createMarkers(response) {
         .bindPopup(`
           <h3>Location: ${demolition.street_number} ${demolition.street_direction} ${demolition.street_name}</h3>
           <p>Permit Type: ${demolition.permit_type}</p>
-          <p>Contractor: ${contractorName}</p>
+          <p>Contractor 1: ${contractorName}</p>
+          <p>Contractor 2: ${contractorName2}</p>
         `);
 
       // Add the marker to the demolitionMarkers array.
@@ -259,6 +333,15 @@ function createMarkers(response) {
       } else {
         legends[contractorName].count++;
       }
+
+      // Update contact2Counts by contact_2_name
+      if (contractorName2) {
+        if (!contact2Counts[contractorName2]) {
+          contact2Counts[contractorName2] = 1;
+        } else {
+          contact2Counts[contractorName2]++;
+        }
+      }
     }
   });
 
@@ -268,8 +351,8 @@ function createMarkers(response) {
   // Create a heatmap layer from heatArray (optional).
   let heatLayer = L.heatLayer(heatArray, { radius: 50, blur: 50 });
 
-  // Create a map with demolitionLayer, heatLayer, and markerCluster.
-  createMap(demolitionLayer, heatLayer, markerCluster, legends);
+  // Create a map with demolitionLayer, heatLayer, markerCluster, and contact2Counts.
+  createMap(demolitionLayer, heatLayer, markerCluster, legends, contact2Counts);
 }
 
 // Perform an API call to get the demolition permit information and create markers.
