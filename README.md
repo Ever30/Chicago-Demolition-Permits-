@@ -25,3 +25,7 @@
   - Click on the following link to see the interactive map.
 
     https://ever30.github.io/Chicago-Demolition-Permits-/
+
+    The following link corresponds to the JSON file I used to extract the data. 
+
+  - https://data.cityofchicago.org/resource/e4xk-pud8.json
